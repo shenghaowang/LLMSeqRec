@@ -1,3 +1,4 @@
+from collections import defaultdict
 from pathlib import Path
 from typing import List, Tuple
 
@@ -32,3 +33,37 @@ def build_index(dataset_path: Path) -> Tuple[List[List[int]], List[List[int]]]:
         i2u_index[i].append(u)
 
     return u2i_index, i2u_index
+
+
+def split_data(dataset_path: Path):
+    n_users = 0
+    n_items = 0
+    User = defaultdict(list)
+    user_train = {}
+    user_valid = {}
+    user_test = {}
+
+    # assume user/item index starting from 1
+    f = open(dataset_path, "r")
+    for line in f:
+        u, i = line.rstrip().split(" ")
+        u, i = int(u), int(i)
+        n_users = max(u, n_users)
+        n_items = max(i, n_items)
+        User[u].append(i)
+
+    for user in User:
+        nfeedback = len(User[user])
+        if nfeedback < 3:
+            user_train[user] = User[user]
+            user_valid[user] = []
+            user_test[user] = []
+
+        else:
+            user_train[user] = User[user][:-2]
+            user_valid[user] = []
+            user_valid[user].append(User[user][-2])
+            user_test[user] = []
+            user_test[user].append(User[user][-1])
+
+    return [user_train, user_valid, user_test, n_users, n_items]
