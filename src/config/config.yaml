@@ -1,7 +1,11 @@
+defaults:
+  - model: poprec
+
 dataset: ???
 dataset_path: 'data/${dataset}.txt'
+k: 10
 
-batch_size: 128
+batch_size: 512
 lr: 0.001
 maxlen: 200
 hidden_units: 50
