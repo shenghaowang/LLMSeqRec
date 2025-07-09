@@ -3,6 +3,6 @@ from enum import Enum
 
 class ModelType(Enum):
     PopRec = "poprec"
-    MatrixFactorization = "matrix_factorization"
+    MatrixFactorization = "mf"
     SASRec = "sasrec"
-    LLMSeqRec = "llm_seqrec"
+    LLMSeqRec = "llmseqrec"
