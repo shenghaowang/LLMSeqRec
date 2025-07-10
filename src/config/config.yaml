@@ -3,10 +3,13 @@ defaults:
 
 dataset: ???
 dataset_path: 'data/${dataset}.txt'
-k_eval: 10
 
-batch_size: 512
-lr: 0.001
+train:
+  batch_size: 128
+  lr: 0.01
+  k_eval: 10
+  device: 'cpu' # 'mps'
+
 maxlen: 200
 hidden_units: 50
 num_blocks: 2
@@ -14,4 +17,3 @@ num_epochs: 1000
 num_heads: 1
 dropout_rate: 0.2
 l2_emb: 0.0
-device: 'mps'
