@@ -14,6 +14,7 @@ def evaluate(
     train_data: Dict[int, List[int]],
     test_data: Dict[int, List[int]],
     num_items: int,
+    k_eval: int = 10,
     num_negatives: int = 100,
 ) -> Tuple[float, float]:
     hit_list = []
@@ -41,7 +42,7 @@ def evaluate(
             topk = model.get_topk_items(candidate_items)
 
         else:
-            topk = model.get_topk_items(user, candidate_items)
+            topk = model.get_topk_items(user, candidate_items, k_eval)
 
         # Compute hit rate and NDCG
         hit = compute_hit_rate(topk, true_item)
