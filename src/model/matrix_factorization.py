@@ -9,12 +9,12 @@ class BPRMatrixFactorization(torch.nn.Module):
     def __init__(self, num_users: int, num_items: int, embedding_dim=32):
         super().__init__()
 
-        self.user_embeddings = nn.Embedding(num_users, embedding_dim)
-        self.item_embeddings = nn.Embedding(num_items, embedding_dim)
+        self.user_emb = nn.Embedding(num_users, embedding_dim)
+        self.item_emb = nn.Embedding(num_items, embedding_dim)
 
     def forward(self, user_ids, item_ids):
-        user_vecs = self.user_embeddings(user_ids)
-        item_vecs = self.item_embeddings(item_ids)
+        user_vecs = self.user_emb(user_ids)
+        item_vecs = self.item_emb(item_ids)
         scores = (user_vecs * item_vecs).sum(dim=1)
 
         return scores

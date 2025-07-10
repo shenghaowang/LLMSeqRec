@@ -37,8 +37,8 @@ class Recommender(pl.LightningModule):
         all_items = torch.arange(self.hparams.num_items, device=self.device)
 
         for user, true_item in zip(users, true_items):
-            user_vec = self.model.user_embeddings(user).unsqueeze(0)  # [1, dim]
-            item_vecs = self.model.item_embeddings(all_items)  # [num_items, dim]
+            user_vec = self.model.user_emb(user).unsqueeze(0)  # [1, dim]
+            item_vecs = self.model.item_emb(all_items)  # [num_items, dim]
 
             scores = torch.matmul(item_vecs, user_vec.squeeze())  # [num_items]
             topk_items = torch.topk(scores, k=self.hparams.k_eval).indices
@@ -68,8 +68,8 @@ class Recommender(pl.LightningModule):
         all_items = torch.arange(self.hparams.num_items, device=self.device)
 
         for user, true_item in zip(users, true_items):
-            user_vec = self.model.user_embeddings(user).unsqueeze(0)
-            item_vecs = self.model.item_embeddings(all_items)
+            user_vec = self.model.user_emb(user).unsqueeze(0)
+            item_vecs = self.model.item_emb(all_items)
 
             scores = torch.matmul(item_vecs, user_vec.squeeze())
             topk_items = torch.topk(scores, k=self.hparams.k_eval).indices
