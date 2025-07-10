@@ -43,13 +43,12 @@ def split_data(dataset_path: Path):
     user_valid = {}
     user_test = {}
 
-    # assume user/item index starting from 1
     f = open(dataset_path, "r")
     for line in f:
         u, i = line.rstrip().split(" ")
-        u, i = int(u), int(i)
-        n_users = max(u, n_users)
-        n_items = max(i, n_items)
+        u, i = int(u) - 1, int(i) - 1  # convert to 0-based index
+        n_users = max(u + 1, n_users)
+        n_items = max(i + 1, n_items)
         User[u].append(i)
 
     for user in User:
