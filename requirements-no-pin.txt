@@ -8,3 +8,4 @@ pytorch-lightning
 pre-commit
 pytest
 torchvision
+tqdm
