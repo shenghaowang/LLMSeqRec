@@ -3,7 +3,7 @@ defaults:
 
 dataset: ???
 dataset_path: 'data/${dataset}.txt'
-k: 10
+k_eval: 10
 
 batch_size: 512
 lr: 0.001
