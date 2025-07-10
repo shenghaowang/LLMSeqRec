@@ -17,6 +17,7 @@ from train_and_eval.evaluate import evaluate
 @hydra.main(version_base=None, config_path="../config", config_name="config")
 def main(cfg: DictConfig):
     logger.info(f"\n{OmegaConf.to_yaml(cfg, resolve=True)}")
+    pl.seed_everything(42)
 
     [user_train, user_valid, user_test, num_users, num_items] = split_data(
         Path(cfg.dataset_path)
