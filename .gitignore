@@ -175,3 +175,6 @@ cython_debug/
 
 # hydra output
 outputs/
+
+data/
+!src/data
