@@ -7,10 +7,11 @@ from tqdm import tqdm
 from model.matrix_factorization import BPRMatrixFactorization
 from model.metrics import compute_hit_rate, compute_ndcg
 from model.poprec import PopRec
+from model.sasrec import SASRec
 
 
 def evaluate(
-    model: PopRec | BPRMatrixFactorization,
+    model: PopRec | BPRMatrixFactorization | SASRec,
     train_data: Dict[int, List[int]],
     test_data: Dict[int, List[int]],
     num_items: int,
@@ -40,6 +41,24 @@ def evaluate(
         # Get top-k items from the model
         if isinstance(model, PopRec):
             topk = model.get_topk_items(candidate_items)
+
+        elif isinstance(model, SASRec):
+            # Get user sequence from training data
+            user_seq = train_data[user]
+            if len(user_seq) == 0:
+                continue
+
+            # Truncate or pad user_seq to model's max_seq_len
+            max_seq_len = getattr(model, "max_seq_len", 200)
+            if len(user_seq) < max_seq_len:
+                pad_len = max_seq_len - len(user_seq)
+                user_seq = [0] * pad_len + user_seq
+
+            else:
+                user_seq = user_seq[-max_seq_len:]
+
+            # Get top-k items from the model
+            topk = model.get_topk_items(user_seq, candidate_items, k_eval)
 
         else:
             topk = model.get_topk_items(user, candidate_items, k_eval)
