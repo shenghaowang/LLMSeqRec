@@ -6,7 +6,7 @@ import torch.nn as nn
 
 
 class BPRMatrixFactorization(torch.nn.Module):
-    def __init__(self, num_users: int, num_items: int, embedding_dim=32):
+    def __init__(self, num_users: int, num_items: int, embedding_dim=16):
         super().__init__()
 
         self.user_emb = nn.Embedding(num_users, embedding_dim)
