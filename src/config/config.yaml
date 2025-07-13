@@ -8,5 +8,5 @@ train:
   batch_size: 128
   lr: 0.001
   k_eval: 10
-  device: 'mps'
+  device: 'cuda'
   # device: 'cpu' # 'mps'
