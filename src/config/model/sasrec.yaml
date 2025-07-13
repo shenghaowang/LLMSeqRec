@@ -1,0 +1,8 @@
+name: sasrec
+
+hparams:
+  maxlen: 200
+  num_blocks: 2
+  num_heads: 1
+  hidden_size: 64
+  dropout_rate: 0.2
