@@ -1,3 +1,4 @@
-name: matrix_factorization
+name: mf
 
-embedding_dim: 16
+hparams:
+  embedding_dim: 16
