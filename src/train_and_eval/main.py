@@ -62,7 +62,7 @@ def main(cfg: DictConfig):
 
         trainer = pl.Trainer(
             accelerator=cfg.train.device,
-            max_epochs=5,
+            max_epochs=cfg.train.max_epochs,
             logger=False,
             enable_checkpointing=False,
         )
@@ -90,7 +90,7 @@ def main(cfg: DictConfig):
 
         trainer = pl.Trainer(
             accelerator=cfg.train.device,
-            max_epochs=10,
+            max_epochs=cfg.train.max_epochs,
             logger=False,
             enable_checkpointing=False,
         )
