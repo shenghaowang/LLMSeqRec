@@ -6,11 +6,13 @@ from loguru import logger
 from omegaconf import DictConfig, OmegaConf
 
 from data.bpr_data import BPRDataModule
+from data.sasrec_data import SASRecDataModule
 from data.utils import split_data
 from model.matrix_factorization import BPRMatrixFactorization
 from model.model_type import ModelType
 from model.poprec import PopRec
 from model.recommender import Recommender
+from model.sasrec import SASRec
 from train_and_eval.evaluate import evaluate
 
 
@@ -29,7 +31,7 @@ def main(cfg: DictConfig):
     if cfg.model.name == ModelType.PopRec.value:
         model = PopRec(train_u2i=user_train, num_items=num_items)
 
-    else:
+    elif cfg.model.name == ModelType.MatrixFactorization.value:
         dm = BPRDataModule(
             train_interactions=[
                 (user, item) for user, items in user_train.items() for item in items
@@ -49,7 +51,7 @@ def main(cfg: DictConfig):
         model = BPRMatrixFactorization(
             num_users=num_users,
             num_items=num_items,
-            embedding_dim=cfg.model.embedding_dim,
+            **cfg.model.hparams,
         )
         recommender = Recommender(
             model=model,
@@ -65,6 +67,37 @@ def main(cfg: DictConfig):
             enable_checkpointing=False,
         )
         trainer.fit(recommender, dm)
+
+    elif cfg.model.name == ModelType.SASRec.value:
+        dm = SASRecDataModule(
+            user_sequences=user_train,
+            num_items=num_items,
+            batch_size=cfg.train.batch_size,
+            max_seq_len=cfg.model.hparams.max_seq_len,
+        )
+        dm.setup()
+
+        model = SASRec(
+            num_items=num_items,
+            **cfg.model.hparams,
+        )
+        recommender = Recommender(
+            model=model,
+            num_items=num_items,
+            lr=cfg.train.lr,
+            k_eval=cfg.train.k_eval,
+        )
+
+        trainer = pl.Trainer(
+            accelerator=cfg.train.device,
+            max_epochs=5,
+            logger=False,
+            enable_checkpointing=False,
+        )
+        trainer.fit(recommender, dm)
+
+    else:
+        raise ValueError(f"Unsupported model type: {cfg.model.name}")
 
     hit_rate, ndcg = evaluate(
         model=recommender.model if recommender is not None else model,
