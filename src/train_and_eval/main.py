@@ -90,7 +90,7 @@ def main(cfg: DictConfig):
 
         trainer = pl.Trainer(
             accelerator=cfg.train.device,
-            max_epochs=5,
+            max_epochs=10,
             logger=False,
             enable_checkpointing=False,
         )
