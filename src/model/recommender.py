@@ -47,7 +47,7 @@ class Recommender(pl.LightningModule):
         else:
             # SASRec: get final hidden state from sequence
             seq_embs = self.model(query)[:, -1, :]  # [batch_size, hidden_dim]
-            item_embs = self.model.item_embed(item_ids)
+            item_embs = self.model.item_emb(item_ids)
             scores = (seq_embs * item_embs).sum(dim=-1)
             return scores
 
