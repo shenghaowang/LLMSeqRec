@@ -4,13 +4,16 @@ defaults:
 dataset: ???
 dataset_path: 'processed/${dataset}.txt'
 
-raw_data:
+preprocess:
   dir: 'raw/${dataset}'
   min_num_actions: 5
+  lm: 'all-MiniLM-L6-v2'
+  embedding_path: 'processed/${dataset}_embeddings.npy'
+  batch_size: 128
   movie_lens:
-    movies: '${raw_data.dir}/movies.dat'
-    ratings: '${raw_data.dir}/ratings.dat'
-
+    movies: '${preprocess.dir}/movies.dat'
+    ratings: '${preprocess.dir}/ratings.dat'
+    prompt: "Title: {title}. Genres: {genres}."
 
 train:
   batch_size: 128
