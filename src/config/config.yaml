@@ -14,6 +14,9 @@ preprocess:
     movies: '${preprocess.dir}/movies.dat'
     ratings: '${preprocess.dir}/ratings.dat'
     prompt: "Title: {title}. Genres: {genres}."
+  amzn_games:
+    reviews: '${preprocess.dir}/reviews_Video_Games_5.json.gz'
+    metadata: '${preprocess.dir}/meta_Video_Games.json.gz'
 
 train:
   batch_size: 128
