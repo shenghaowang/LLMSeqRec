@@ -11,12 +11,14 @@ preprocess:
   embedding_path: 'processed/${dataset}_embeddings.npy'
   batch_size: 128
   movie_lens:
-    movies: '${preprocess.dir}/movies.dat'
-    ratings: '${preprocess.dir}/ratings.dat'
+    items_file: '${preprocess.dir}/movies.dat'
+    actions_file: '${preprocess.dir}/ratings.dat'
     prompt: "Title: {title}. Genres: {genres}."
+    user_mapping: False
   amzn_games:
-    reviews: '${preprocess.dir}/reviews_Video_Games_5.json.gz'
-    metadata: '${preprocess.dir}/meta_Video_Games.json.gz'
+    actions_file: '${preprocess.dir}/reviews_Video_Games_5.json.gz'
+    items_file: '${preprocess.dir}/meta_Video_Games.json.gz'
+    user_mapping: True
 
 train:
   batch_size: 128
