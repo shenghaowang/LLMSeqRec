@@ -7,5 +7,6 @@ pandas
 pytorch-lightning
 pre-commit
 pytest
+sentence-transformers
 torchvision
 tqdm

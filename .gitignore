@@ -178,3 +178,7 @@ outputs/
 
 data/
 !src/data
+
+# raw and processed data directories
+raw/
+processed/

@@ -2,7 +2,23 @@ defaults:
   - model: poprec
 
 dataset: ???
-dataset_path: 'data/${dataset}.txt'
+dataset_path: 'processed/${dataset}.txt'
+
+preprocess:
+  dir: 'raw/${dataset}'
+  min_num_actions: 5
+  lm: 'all-MiniLM-L6-v2'
+  embedding_path: 'processed/${dataset}_embeddings.npy'
+  batch_size: 128
+  movie_lens:
+    items_file: '${preprocess.dir}/movies.dat'
+    actions_file: '${preprocess.dir}/ratings.dat'
+    prompt: "Title: {title}. Genres: {genres}."
+    user_mapping: False
+  amzn_games:
+    actions_file: '${preprocess.dir}/reviews_Video_Games_5.json.gz'
+    items_file: '${preprocess.dir}/meta_Video_Games.json.gz'
+    user_mapping: True
 
 train:
   batch_size: 128
