@@ -1,3 +1,4 @@
+import gzip
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from pathlib import Path
@@ -9,20 +10,11 @@ from sentence_transformers import SentenceTransformer
 
 
 class Preprocessor(ABC):
-    def __init__(
-        self,
-        actions_file: Path,
-        # metadata_file: Path,
-        # output_file: Path,
-        # embedding_file: Path,
-        # model: SentenceTransformer,
-        # prompt: str,
-        # min_num_actions: int = 5,
-        # batch_size: int = 128,
-    ):
+    def __init__(self, actions_file: Path, items_file: Path):
         super().__init__()
 
         self.actions_file = actions_file
+        self.items_file = items_file
         self.user_count, self.item_count = self.count_actions()
 
     def count_actions(self) -> Tuple[DefaultDict[int, int], DefaultDict[int, int]]:
@@ -35,12 +27,25 @@ class Preprocessor(ABC):
         raise NotImplementedError("The get_user_actions method is not implemented.")
 
     @staticmethod
-    def get_item_mapping(
-        user_actions: DefaultDict[int, List[Tuple[int, float]]]
+    def get_user_item_mapping(
+        user_actions: DefaultDict[int, List[Tuple[int, float]]],
+        user_mapping: bool = False,
     ) -> Dict[str, int]:
+        if user_mapping:
+            user_map = dict()
+            user_id_new = 0
+
+        else:
+            user_map = None
+
         item_map = dict()
         item_id_new = 0
         for user_id in user_actions.keys():
+            if user_mapping:
+                if user_id not in user_map:
+                    user_id_new += 1
+                    user_map[user_id] = user_id_new
+
             user_actions[user_id].sort(key=lambda x: x[0])
 
             for item in user_actions[user_id]:
@@ -50,7 +55,11 @@ class Preprocessor(ABC):
 
         logger.info(f"Total unique items after filtering: {len(item_map)}")
 
-        return item_map
+        return user_map, item_map
+
+    @abstractmethod
+    def load_metadata(self, item_map: Dict[str, int], prompt: str = None) -> List[str]:
+        raise NotImplementedError("The load_metadata method is not implemented.")
 
     @staticmethod
     def get_item_embeddings(
@@ -91,8 +100,8 @@ class Preprocessor(ABC):
 
 
 class MovieLensPreprocessor(Preprocessor):
-    def __init__(self, actions_file: Path):
-        super().__init__(actions_file=actions_file)
+    def __init__(self, actions_file: Path, items_file: Path):
+        super().__init__(actions_file=actions_file, items_file=items_file)
 
     def count_actions(self) -> Tuple[DefaultDict[int, int], DefaultDict[int, int]]:
         user_count = defaultdict(int)  # Count of interactions per user
@@ -103,9 +112,6 @@ class MovieLensPreprocessor(Preprocessor):
                 user_id, item_id, _, _ = line.strip().split("::")
                 user_count[user_id] += 1
                 item_count[item_id] += 1
-
-        logger.info(f"User interaction counts: {len(user_count)}")
-        logger.info(f"Item interaction counts: {len(item_count)}")
 
         return user_count, item_count
 
@@ -130,12 +136,10 @@ class MovieLensPreprocessor(Preprocessor):
 
         return user_actions
 
-    def load_metadata(
-        self, item_map: Dict[str, int], items_file: Path, prompt: str
-    ) -> List[str]:
+    def load_metadata(self, item_map: Dict[str, int], prompt: str) -> List[str]:
         # Load metadata for embeddings
         item_metadata = [None] * len(item_map)
-        with open(items_file, "r", encoding="latin1") as f:
+        with open(self.items_file, "r", encoding="latin1") as f:
             for line in f:
                 item_id, title, genres = line.strip().split("::")
                 if item_id in item_map:
@@ -145,3 +149,73 @@ class MovieLensPreprocessor(Preprocessor):
                     )
 
         return item_metadata
+
+
+class AmazonReviewsPreprocessor(Preprocessor):
+    def __init__(self, actions_file: Path, items_file: Path):
+        super().__init__(actions_file=actions_file, items_file=items_file)
+
+        self.items_missing_description = self._get_items_missing_description(
+            items_file=items_file
+        )
+
+    @staticmethod
+    def _parse(file_path: Path):
+        file = gzip.open(file_path, "r")
+        for line in file:
+            yield eval(line)
+
+    def count_actions(self) -> Tuple[DefaultDict[int, int], DefaultDict[int, int]]:
+        user_count = defaultdict(int)  # Count of interactions per user
+        item_count = defaultdict(int)  # Count of interactions per item
+
+        for review in self._parse(self.actions_file):
+            user_count[review["reviewerID"]] += 1
+            item_count[review["asin"]] += 1
+
+        return user_count, item_count
+
+    def get_user_actions(
+        self, min_num_actions: int = 5
+    ) -> DefaultDict[str, List[Tuple[str, str]]]:
+        user_actions = defaultdict(list)
+        for review in self._parse(self.actions_file):
+            user_id = review["reviewerID"]
+            item_id = review["asin"]
+            timestamp = review["unixReviewTime"]
+
+            if (
+                self.user_count[user_id] < min_num_actions
+                or self.item_count[item_id] < min_num_actions
+                or item_id in self.items_missing_description
+            ):
+                continue
+
+            user_actions[user_id].append((timestamp, item_id))
+
+        logger.info(f"Filtered users: {len(user_actions)}")
+
+        return user_actions
+
+    def load_metadata(self, item_map: Dict[str, int], prompt: str = None) -> List[str]:
+        # Load metadata for embeddings
+        item_metadata = [None] * len(item_map)
+        for item in self._parse(self.items_file):
+            if item["asin"] in item_map:
+                item_id_new = item_map[item["asin"]]
+                item_metadata[item_id_new - 1] = item["description"]
+
+        return item_metadata
+
+    def _get_items_missing_description(self, items_file: Path) -> List[str]:
+        items_missing_description = []
+
+        for item in self._parse(items_file):
+            if "description" not in item:
+                items_missing_description.append(item["asin"])
+
+        logger.info(
+            f"There are {len(items_missing_description)} items without description."
+        )
+
+        return items_missing_description

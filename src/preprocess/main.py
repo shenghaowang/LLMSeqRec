@@ -6,9 +6,7 @@ from loguru import logger
 from omegaconf import DictConfig, OmegaConf
 from sentence_transformers import SentenceTransformer
 
-# from preprocess.movie_lens import preprocess_movie_lens
-# from preprocess.amzn_reviews import process_amzn_reviews
-from preprocess.preprocessor import MovieLensPreprocessor
+from preprocess.preprocessor import AmazonReviewsPreprocessor, MovieLensPreprocessor
 
 
 @hydra.main(version_base=None, config_path="../config", config_name="config")
@@ -21,15 +19,18 @@ def main(cfg: DictConfig):
 
     match cfg.dataset:
         case Dataset.MovieLens.value:
+            preprocess_cfg = cfg.preprocess.movie_lens
             preprocessor = MovieLensPreprocessor(
-                actions_file=Path(cfg.preprocess.movie_lens.ratings),
+                actions_file=Path(preprocess_cfg.actions_file),
+                items_file=Path(preprocess_cfg.items_file),
             )
 
-        # case Dataset.AmazonGames.value:
-        #     process_amzn_reviews(
-        #         reviews_file=Path(cfg.preprocess.amzn_games.reviews),
-        #         output_file=Path(cfg.dataset_path),
-        #     )
+        case Dataset.AmazonGames.value:
+            preprocess_cfg = cfg.preprocess.amzn_games
+            preprocessor = AmazonReviewsPreprocessor(
+                actions_file=Path(preprocess_cfg.actions_file),
+                items_file=Path(preprocess_cfg.items_file),
+            )
 
         case _:
             raise ValueError(f"Dataset {cfg.dataset} is not supported yet.")
@@ -37,7 +38,9 @@ def main(cfg: DictConfig):
     user_actions = preprocessor.get_user_actions(
         min_num_actions=cfg.preprocess.min_num_actions
     )
-    item_map = preprocessor.get_item_mapping(user_actions=user_actions)
+    user_map, item_map = preprocessor.get_user_item_mapping(
+        user_actions=user_actions, user_mapping=preprocess_cfg.user_mapping
+    )
 
     output_file = Path(cfg.dataset_path)
     output_file.parent.mkdir(parents=True, exist_ok=True)
@@ -45,15 +48,18 @@ def main(cfg: DictConfig):
     f = open(output_file, "w")
     for user_id in user_actions.keys():
         for item in user_actions[user_id]:
-            f.write(f"{user_id} {item_map[item[1]]}\n")
+            user_id_mapped = (
+                user_map[user_id] if preprocess_cfg.user_mapping else user_id
+            )
+            item_id_mapped = item_map[item[1]]
+            f.write(f"{user_id_mapped} {item_id_mapped}\n")
 
     f.close()
 
     # Load item metadata for embeddings
     item_metadata = preprocessor.load_metadata(
         item_map=item_map,
-        items_file=Path(cfg.preprocess.movie_lens.movies),
-        prompt=cfg.preprocess.movie_lens.prompt,
+        prompt=preprocess_cfg.prompt if hasattr(preprocess_cfg, "prompt") else None,
     )
 
     # Generate embeddings file
