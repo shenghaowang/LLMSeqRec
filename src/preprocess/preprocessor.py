@@ -8,6 +8,8 @@ import numpy as np
 from loguru import logger
 from sentence_transformers import SentenceTransformer
 
+from preprocess.dataset import AmazonReviewAttributes
+
 
 class Preprocessor(ABC):
     def __init__(self, actions_file: Path, items_file: Path):
@@ -153,6 +155,7 @@ class MovieLensPreprocessor(Preprocessor):
 
 class AmazonReviewsPreprocessor(Preprocessor):
     def __init__(self, actions_file: Path, items_file: Path):
+        self.review_attr = AmazonReviewAttributes()
         super().__init__(actions_file=actions_file, items_file=items_file)
 
         self.items_missing_description = self._get_items_missing_description(
@@ -170,8 +173,11 @@ class AmazonReviewsPreprocessor(Preprocessor):
         item_count = defaultdict(int)  # Count of interactions per item
 
         for review in self._parse(self.actions_file):
-            user_count[review["reviewerID"]] += 1
-            item_count[review["asin"]] += 1
+            user_id = review[self.review_attr.user_id]
+            item_id = review[self.review_attr.item_id]
+
+            user_count[user_id] += 1
+            item_count[item_id] += 1
 
         return user_count, item_count
 
@@ -180,9 +186,9 @@ class AmazonReviewsPreprocessor(Preprocessor):
     ) -> DefaultDict[str, List[Tuple[str, str]]]:
         user_actions = defaultdict(list)
         for review in self._parse(self.actions_file):
-            user_id = review["reviewerID"]
-            item_id = review["asin"]
-            timestamp = review["unixReviewTime"]
+            user_id = review[self.review_attr.user_id]
+            item_id = review[self.review_attr.item_id]
+            timestamp = review[self.review_attr.timestamp]
 
             if (
                 self.user_count[user_id] < min_num_actions
@@ -201,9 +207,11 @@ class AmazonReviewsPreprocessor(Preprocessor):
         # Load metadata for embeddings
         item_metadata = [None] * len(item_map)
         for item in self._parse(self.items_file):
-            if item["asin"] in item_map:
-                item_id_new = item_map[item["asin"]]
-                item_metadata[item_id_new - 1] = item["description"]
+            item_id = item[self.review_attr.item_id]
+
+            if item_id in item_map:
+                item_id_new = item_map[item_id]
+                item_metadata[item_id_new - 1] = item[self.review_attr.description]
 
         return item_metadata
 
@@ -211,8 +219,8 @@ class AmazonReviewsPreprocessor(Preprocessor):
         items_missing_description = []
 
         for item in self._parse(items_file):
-            if "description" not in item:
-                items_missing_description.append(item["asin"])
+            if self.review_attr.description not in item:
+                items_missing_description.append(item[self.review_attr.item_id])
 
         logger.info(
             f"There are {len(items_missing_description)} items without description."
