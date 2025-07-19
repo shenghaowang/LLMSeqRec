@@ -8,13 +8,13 @@ import torch.nn as nn
 class SASRec(nn.Module):
     def __init__(
         self,
-        num_items,
-        embedding_dim=64,
-        hidden_size=64,
-        max_seq_len=200,
-        num_heads=2,
-        num_layers=2,
-        dropout_rate=0.2,
+        num_items: int,
+        embedding_dim: int = 64,
+        hidden_size: int = 64,
+        max_seq_len: int = 200,
+        num_heads: int = 2,
+        num_layers: int = 2,
+        dropout_rate: float = 0.2,
     ):
         super().__init__()
 
