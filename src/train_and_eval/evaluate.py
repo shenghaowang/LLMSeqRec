@@ -4,6 +4,7 @@ from typing import Dict, List, Tuple
 import numpy as np
 from tqdm import tqdm
 
+from model.llmseqrec import LLMSeqRec
 from model.matrix_factorization import BPRMatrixFactorization
 from model.metrics import compute_hit_rate, compute_ndcg
 from model.poprec import PopRec
@@ -42,7 +43,7 @@ def evaluate(
         if isinstance(model, PopRec):
             topk = model.get_topk_items(candidate_items)
 
-        elif isinstance(model, SASRec):
+        elif isinstance(model, (SASRec, LLMSeqRec)):
             # Get user sequence from training data
             user_seq = train_data[user]
             if len(user_seq) == 0:
