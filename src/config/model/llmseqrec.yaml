@@ -1,0 +1,10 @@
+name: llmseqrec
+
+
+hparams:
+  max_seq_len: 200
+  num_layers: 2 # num_blocks
+  num_heads: 1
+  hidden_size: 64
+  dropout_rate: 0.2
+  llm_dim: 384
