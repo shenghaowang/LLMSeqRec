@@ -19,11 +19,15 @@ preprocess:
     actions_file: '${preprocess.dir}/reviews_Video_Games_5.json.gz'
     items_file: '${preprocess.dir}/meta_Video_Games.json.gz'
     user_mapping: True
+  amzn_beauty:
+    actions_file: '${preprocess.dir}/reviews_Beauty_5.json.gz'
+    items_file: '${preprocess.dir}/meta_Beauty.json.gz'
+    user_mapping: True
 
 train:
   batch_size: 128
-  lr: 0.001
+  lr: 0.01
   k_eval: 10
   max_epochs: 10
-  device: 'cuda'
-  # device: 'cpu' # 'mps'
+  # device: 'cuda'
+  device: 'cpu' # 'mps'

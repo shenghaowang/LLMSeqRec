@@ -32,6 +32,13 @@ def main(cfg: DictConfig):
                 items_file=Path(preprocess_cfg.items_file),
             )
 
+        case Dataset.AmazonBeauty.value:
+            preprocess_cfg = cfg.preprocess.amzn_beauty
+            preprocessor = AmazonReviewsPreprocessor(
+                actions_file=Path(preprocess_cfg.actions_file),
+                items_file=Path(preprocess_cfg.items_file),
+            )
+
         case _:
             raise ValueError(f"Dataset {cfg.dataset} is not supported yet.")
 
