@@ -50,7 +50,7 @@ def evaluate(
                 continue
 
             # Truncate or pad user_seq to model's max_seq_len
-            max_seq_len = getattr(model, "max_seq_len", 200)
+            max_seq_len = getattr(model, "max_seq_len")
             if len(user_seq) < max_seq_len:
                 pad_len = max_seq_len - len(user_seq)
                 user_seq = [0] * pad_len + user_seq
