@@ -18,6 +18,7 @@ class SASRec(nn.Module):
     ):
         super().__init__()
 
+        self.max_seq_len = max_seq_len
         self.item_emb = nn.Embedding(num_items + 1, embedding_dim, padding_idx=0)
         self.pos_emb = nn.Embedding(max_seq_len, embedding_dim)
 
