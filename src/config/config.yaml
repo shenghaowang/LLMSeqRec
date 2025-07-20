@@ -26,8 +26,8 @@ preprocess:
 
 train:
   batch_size: 128
-  lr: 0.01
+  lr: 0.001
   k_eval: 10
-  max_epochs: 10
-  # device: 'cuda'
-  device: 'cpu' # 'mps'
+  max_epochs: 30
+  device: 'cuda'
+  # device: 'cpu' # 'mps'
