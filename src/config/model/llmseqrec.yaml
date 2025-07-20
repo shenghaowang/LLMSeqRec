@@ -1,4 +1,5 @@
-name: sasrec
+name: llmseqrec
+
 
 hparams:
   max_seq_len: 50 # 200
@@ -6,3 +7,4 @@ hparams:
   num_heads: 1
   hidden_size: 64
   dropout_rate: 0.2
+  llm_dim: 384

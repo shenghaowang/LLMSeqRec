@@ -4,6 +4,7 @@ from typing import Dict, List, Tuple
 import numpy as np
 from tqdm import tqdm
 
+from model.llmseqrec import LLMSeqRec
 from model.matrix_factorization import BPRMatrixFactorization
 from model.metrics import compute_hit_rate, compute_ndcg
 from model.poprec import PopRec
@@ -42,14 +43,14 @@ def evaluate(
         if isinstance(model, PopRec):
             topk = model.get_topk_items(candidate_items)
 
-        elif isinstance(model, SASRec):
+        elif isinstance(model, (SASRec, LLMSeqRec)):
             # Get user sequence from training data
             user_seq = train_data[user]
             if len(user_seq) == 0:
                 continue
 
             # Truncate or pad user_seq to model's max_seq_len
-            max_seq_len = getattr(model, "max_seq_len", 200)
+            max_seq_len = getattr(model, "max_seq_len")
             if len(user_seq) < max_seq_len:
                 pad_len = max_seq_len - len(user_seq)
                 user_seq = [0] * pad_len + user_seq
